@@ -1,0 +1,28 @@
+Package: SA25204152
+Type: Package
+Title: Final Project for Statistical Computing
+Version: 0.1.0
+Author: Yixiang Xu <xuyixaing@mail.ustc.edu.cn>
+Maintainer: Yixiang Xu <xuyixaing@mail.ustc.edu.cn>
+Description: Homework and research functions for the course.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Imports:
+    Rcpp (>= 1.0.0)
+LinkingTo:
+    Rcpp,
+    RcppArmadillo
+RoxygenNote: 7.3.3
+Suggests:
+    knitr,
+    rmarkdown,
+    ggplot2,
+    DAAG,
+    boot,
+    bootstrap,
+    microbenchmark,
+    gridExtra,
+    lpSolve,
+    rbenchmark
+VignetteBuilder: knitr

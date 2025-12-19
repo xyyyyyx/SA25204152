@@ -1,0 +1,192 @@
+---
+title: "Introduction to APM and Comparison with CPE"
+author: "SA25204152"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to APM and Comparison with CPE}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(SA25204152)
+```
+
+## 1. Introduction
+
+本 R 包主要实现了用于处理群组因子模型（Group Factor Model）的 **Aggregated Projection Method (APM)** [Li et al., 2024]。同时，为了进行性能对比，本包也实现了 **Circular Projection Estimator (CPE)** [Chen, 2022] 作为基准方法（Benchmark）。
+
+群组因子模型假设我们在 $M$ 个群组中观察到面板数据 $Y_m$ ($m=1,\dots,M$)。每个个体 $i$ 在时间 $t$ 的观测值 $y_{m,i,t}$ 由全局因子（Global Factors）和局部因子（Local Factors）共同驱动：
+
+$$
+y_{m,i,t} = \gamma_{m,i}^{\top} G_t + \lambda_{m,i}^{\top} F_{m,t} + e_{m,i,t}
+$$
+
+其中：
+* $G_t$ 是 $r_0 \times 1$ 的**全局因子**，影响所有群组。
+* $F_{m,t}$ 是 $r_m \times 1$ 的**局部因子**，仅影响第 $m$ 个群组。
+* $\gamma_{m,i}$ 和 $\lambda_{m,i}$ 分别是对应的因子载荷。
+* $e_{m,i,t}$ 是特异性误差。
+
+我们的目标是从观测数据中分离并估计出全局因子 $G_t$。
+
+## 2. Methods
+
+### 2.1 Aggregated Projection Method (APM)
+
+APM (Algorithm 1 in Li et al., 2024) 的核心思想是利用投影矩阵的聚合。假设每个群组的数据空间由 $K_m = [G, F_m]$ 张成。全局因子 $G$ 是所有群组因子空间 $K_m$ 的公共部分（Intersection）。
+
+定义投影矩阵 $P(K_m)$ 为数据投影到第 $m$ 组因子空间的算子。APM 构建了一个聚合投影矩阵 $\Psi$：
+
+$$
+\Psi = \frac{1}{M} \sum_{m=1}^{M} P(K_m)
+$$
+
+理论证明，$\Psi$ 的特征值在 $[0, 1]$ 之间。对应于全局因子 $G$ 的特征向量，其特征值应接近于 1。
+
+**算法步骤 (APM Algorithm):**
+
+1.  **Initial Estimation**: 对每个群组 $Y_m$ 进行 PCA/SVD，估计包含全局和局部信息的因子空间 $\hat{K}_m$。
+2.  **Aggregation**: 计算聚合投影矩阵 $\hat{\Psi} = \frac{1}{M} \sum_{m=1}^{M} P(\hat{K}_m)$。本包使用 C++ (`calc_psi_cpp`) 加速此步骤。
+3.  **Global Factor Extraction**: 对 $\hat{\Psi}$ 进行特征分解。前 $\hat{r}_0$ 个最大特征值对应的特征向量即为估计的全局因子 $\hat{G}$。
+4.  **Local Factor Estimation**: 将 $\hat{G}$ 投影掉，对残差进行 PCA 提取局部因子 $\hat{F}_m$。
+
+### 2.2 Circular Projection Estimator (CPE)
+
+CPE (Chen, 2022) 是另一种估计全局因子的方法，它采用迭代（Iterative）的策略。
+
+**算法逻辑**:
+与 APM 的并行聚合不同，CPE 将初始估计的全局因子 $\hat{G}^{(0)}$ 依次投影到各个群组的空间上，形成一个循环：
+
+$$
+G^{(k+1)} \leftarrow \text{Orthogonalize} \left( P(K_M) \cdots P(K_2) P(K_1) G^{(k)} \right)
+$$
+
+该方法需要迭代直至收敛。本包同样使用 C++ (`fit_cpe_cpp`) 实现了该算法以进行公平对比。
+
+---
+
+## 3. Simulation Study
+
+我们在本节通过数值模拟对比 APM 和 CPE 的性能。模拟设置参考 Li et al. (2024) 中的 Slide 35。
+
+### 3.1 Data Generation
+
+我们设定如下参数：
+* 群组数 $M=5$，每组个体数 $N=50$，时间长度 $T=100$。
+* 全局因子数 $r_0=2$，局部因子数 $r_{local}=2$。
+* 因子和误差均服从 AR(1) 过程，以模拟序列相关性。
+
+```{r setup_sim}
+library(SA25204152) # 加载本包
+library(ggplot2)
+library(microbenchmark)
+
+# 设置随机种子以保证结果可复现
+set.seed(2025)
+
+# 生成模拟数据
+M <- 5
+N <- 50
+T_obs <- 100
+r0_true <- 2
+sim_data <- sim_group_data(M = M, N = N, T_obs = T_obs, r0 = r0_true, r_local = 2)
+
+Y_list <- sim_data$Y_list
+G_true <- sim_data$G
+
+cat("Data generated: M =", M, ", N =", N, ", T =", T_obs, "\n")
+```
+
+### 3.2 Accuracy Comparison
+
+我们使用 APM 和 CPE 分别估计全局因子。为了衡量估计的因子空间 $\hat{G}$ 与真实因子空间 $G_{true}$ 的一致性，我们采用**典型相关分析 (Canonical Correlation Analysis, CCA)**。具体指标为典型相关系数平方的均值（即 Trace Ratio），该值越接近 1 表示估计越准确。
+
+```{r accuracy}
+# 1. 运行 APM
+# APM 自动确定 r0 (默认使用 Eigenvalue Gap 方法)
+res_apm <- apm(Y_list, r_max = 6, method = "Gap")
+G_apm <- res_apm$G_hat
+
+# 2. 运行 CPE
+# CPE 需要指定 r0
+res_cpe <- cpe(Y_list, r0 = r0_true, r_max = 6)
+G_cpe <- res_cpe$G_hat
+
+# 定义计算精度的辅助函数 (使用典型相关系数)
+calc_accuracy <- function(G_est, G_true) {
+  if(ncol(G_est) == 0) return(0)
+  
+  # 确保行数匹配
+  T_common <- min(nrow(G_est), nrow(G_true))
+  G_est <- G_est[1:T_common, , drop=FALSE]
+  G_true <- G_true[1:T_common, , drop=FALSE]
+  
+  # 计算典型相关系数
+  cc <- cancor(G_est, G_true)
+  
+  # 返回平方相关系数的均值 (范围 0~1)
+  return(mean(cc$cor^2))
+}
+
+# 计算精度
+acc_apm <- calc_accuracy(G_apm, G_true)
+acc_cpe <- calc_accuracy(G_cpe, G_true)
+
+# 展示结果
+result_df <- data.frame(
+  Method = c("APM", "CPE"),
+  Accuracy = c(acc_apm, acc_cpe)
+)
+knitr::kable(result_df, caption = "Accuracy Comparison (Trace Ratio of Canonical Correlations)")
+```
+
+结果表明，APM 和 CPE 在此设定下都能准确地恢复出全局因子空间（Accuracy 接近 1）。
+
+### 3.3 Computational Efficiency
+
+APM 是一次性计算（One-step），而 CPE 需要迭代收敛。理论上 APM 具有更高的计算效率。我们使用 `microbenchmark` 包进行 50 次重复实验来对比运行时间。
+
+```{r speed, warning=FALSE, message=FALSE}
+# 比较运行速度
+library(ggplot2)
+library(microbenchmark)
+
+mb <- microbenchmark(
+  APM = apm(Y_list, r_max = 6),
+  CPE = cpe(Y_list, r0 = r0_true, r_max = 6),
+  times = 50
+)
+
+print(mb)
+
+# 可视化速度差异 (使用 print 显式输出图形，并设置了 chunk 的 fig 大小)
+p <- autoplot(mb) + 
+  ggtitle("Runtime Comparison: APM vs CPE") +
+  theme_minimal()
+
+print(p)
+```
+
+从结果可以看出，**APM 的计算速度显著快于 CPE**。这是因为 APM 避免了耗时的迭代过程，仅需计算一次聚合矩阵的特征分解，这在大规模数据集（Large $N$, Large $T$）上具有显著优势。
+
+## 4. Conclusion
+
+本 R 包实现了 Li et al. (2024) 提出的 APM 算法。
+1.  **理论上**：APM 通过聚合投影矩阵，提供了一种直观且数学上严谨的全局因子提取方法。
+2.  **实证上**：模拟结果显示，APM 在保持与迭代方法（CPE）相当的高精度的同时，在计算效率上实现了数量级的提升。
+
+这些特性使得 APM 非常适合处理高维、多群组的宏观经济或金融面板数据。
+
+## References
+
+1.  Li, T., Hu, J., & Wang, X. (2024). Aggregated projection method: a new approach for group factor model. *Presentation Slides*.
+2.  Chen, M. (2022). Circularly projected common factors for grouped data. *Journal of Business & Economic Statistics*, 41(2), 636-649.
