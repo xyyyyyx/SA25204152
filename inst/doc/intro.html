@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="SA25204152" />
+
+<meta name="date" content="2025-12-19" />
+
+<title>Introduction to APM and Comparison with CPE</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Introduction to APM and Comparison with
+CPE</h1>
+<h4 class="author">SA25204152</h4>
+<h4 class="date">2025-12-19</h4>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(SA25204152)</span></code></pre></div>
+<div id="introduction" class="section level2">
+<h2>1. Introduction</h2>
+<p>本 R 包主要实现了用于处理群组因子模型（Group Factor Model）的
+<strong>Aggregated Projection Method (APM)</strong> [Li et al.,
+2024]。同时，为了进行性能对比，本包也实现了 <strong>Circular Projection
+Estimator (CPE)</strong> [Chen, 2022] 作为基准方法（Benchmark）。</p>
+<p>群组因子模型假设我们在 <span class="math inline">\(M\)</span>
+个群组中观察到面板数据 <span class="math inline">\(Y_m\)</span> (<span class="math inline">\(m=1,\dots,M\)</span>)。每个个体 <span class="math inline">\(i\)</span> 在时间 <span class="math inline">\(t\)</span> 的观测值 <span class="math inline">\(y_{m,i,t}\)</span> 由全局因子（Global
+Factors）和局部因子（Local Factors）共同驱动：</p>
+<p><span class="math display">\[
+y_{m,i,t} = \gamma_{m,i}^{\top} G_t + \lambda_{m,i}^{\top} F_{m,t} +
+e_{m,i,t}
+\]</span></p>
+<p>其中： * <span class="math inline">\(G_t\)</span> 是 <span class="math inline">\(r_0 \times 1\)</span>
+的<strong>全局因子</strong>，影响所有群组。 * <span class="math inline">\(F_{m,t}\)</span> 是 <span class="math inline">\(r_m \times 1\)</span>
+的<strong>局部因子</strong>，仅影响第 <span class="math inline">\(m\)</span> 个群组。 * <span class="math inline">\(\gamma_{m,i}\)</span> 和 <span class="math inline">\(\lambda_{m,i}\)</span> 分别是对应的因子载荷。 *
+<span class="math inline">\(e_{m,i,t}\)</span> 是特异性误差。</p>
+<p>我们的目标是从观测数据中分离并估计出全局因子 <span class="math inline">\(G_t\)</span>。</p>
+</div>
+<div id="methods" class="section level2">
+<h2>2. Methods</h2>
+<div id="aggregated-projection-method-apm" class="section level3">
+<h3>2.1 Aggregated Projection Method (APM)</h3>
+<p>APM (Algorithm 1 in Li et al., 2024)
+的核心思想是利用投影矩阵的聚合。假设每个群组的数据空间由 <span class="math inline">\(K_m = [G, F_m]\)</span> 张成。全局因子 <span class="math inline">\(G\)</span> 是所有群组因子空间 <span class="math inline">\(K_m\)</span> 的公共部分（Intersection）。</p>
+<p>定义投影矩阵 <span class="math inline">\(P(K_m)\)</span>
+为数据投影到第 <span class="math inline">\(m\)</span>
+组因子空间的算子。APM 构建了一个聚合投影矩阵 <span class="math inline">\(\Psi\)</span>：</p>
+<p><span class="math display">\[
+\Psi = \frac{1}{M} \sum_{m=1}^{M} P(K_m)
+\]</span></p>
+<p>理论证明，<span class="math inline">\(\Psi\)</span> 的特征值在 <span class="math inline">\([0, 1]\)</span> 之间。对应于全局因子 <span class="math inline">\(G\)</span> 的特征向量，其特征值应接近于 1。</p>
+<p><strong>算法步骤 (APM Algorithm):</strong></p>
+<ol style="list-style-type: decimal">
+<li><strong>Initial Estimation</strong>: 对每个群组 <span class="math inline">\(Y_m\)</span> 进行
+PCA/SVD，估计包含全局和局部信息的因子空间 <span class="math inline">\(\hat{K}_m\)</span>。</li>
+<li><strong>Aggregation</strong>: 计算聚合投影矩阵 <span class="math inline">\(\hat{\Psi} = \frac{1}{M} \sum_{m=1}^{M}
+P(\hat{K}_m)\)</span>。本包使用 C++ (<code>calc_psi_cpp</code>)
+加速此步骤。</li>
+<li><strong>Global Factor Extraction</strong>: 对 <span class="math inline">\(\hat{\Psi}\)</span> 进行特征分解。前 <span class="math inline">\(\hat{r}_0\)</span>
+个最大特征值对应的特征向量即为估计的全局因子 <span class="math inline">\(\hat{G}\)</span>。</li>
+<li><strong>Local Factor Estimation</strong>: 将 <span class="math inline">\(\hat{G}\)</span> 投影掉，对残差进行 PCA
+提取局部因子 <span class="math inline">\(\hat{F}_m\)</span>。</li>
+</ol>
+</div>
+<div id="circular-projection-estimator-cpe" class="section level3">
+<h3>2.2 Circular Projection Estimator (CPE)</h3>
+<p>CPE (Chen, 2022)
+是另一种估计全局因子的方法，它采用迭代（Iterative）的策略。</p>
+<p><strong>算法逻辑</strong>: 与 APM 的并行聚合不同，CPE
+将初始估计的全局因子 <span class="math inline">\(\hat{G}^{(0)}\)</span>
+依次投影到各个群组的空间上，形成一个循环：</p>
+<p><span class="math display">\[
+G^{(k+1)} \leftarrow \text{Orthogonalize} \left( P(K_M) \cdots P(K_2)
+P(K_1) G^{(k)} \right)
+\]</span></p>
+<p>该方法需要迭代直至收敛。本包同样使用 C++ (<code>fit_cpe_cpp</code>)
+实现了该算法以进行公平对比。</p>
+<hr />
+</div>
+</div>
+<div id="simulation-study" class="section level2">
+<h2>3. Simulation Study</h2>
+<p>我们在本节通过数值模拟对比 APM 和 CPE 的性能。模拟设置参考 Li et
+al. (2024) 中的 Slide 35。</p>
+<div id="data-generation" class="section level3">
+<h3>3.1 Data Generation</h3>
+<p>我们设定如下参数： * 群组数 <span class="math inline">\(M=5\)</span>，每组个体数 <span class="math inline">\(N=50\)</span>，时间长度 <span class="math inline">\(T=100\)</span>。 * 全局因子数 <span class="math inline">\(r_0=2\)</span>，局部因子数 <span class="math inline">\(r_{local}=2\)</span>。 * 因子和误差均服从 AR(1)
+过程，以模拟序列相关性。</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(SA25204152) <span class="co"># 加载本包</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">library</span>(microbenchmark)</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co"># 设置随机种子以保证结果可复现</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2025</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co"># 生成模拟数据</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>M <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">50</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>T_obs <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>r0_true <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>sim_data <span class="ot">&lt;-</span> <span class="fu">sim_group_data</span>(<span class="at">M =</span> M, <span class="at">N =</span> N, <span class="at">T_obs =</span> T_obs, <span class="at">r0 =</span> r0_true, <span class="at">r_local =</span> <span class="dv">2</span>)</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>Y_list <span class="ot">&lt;-</span> sim_data<span class="sc">$</span>Y_list</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>G_true <span class="ot">&lt;-</span> sim_data<span class="sc">$</span>G</span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Data generated: M =&quot;</span>, M, <span class="st">&quot;, N =&quot;</span>, N, <span class="st">&quot;, T =&quot;</span>, T_obs, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co">#&gt; Data generated: M = 5 , N = 50 , T = 100</span></span></code></pre></div>
+</div>
+<div id="accuracy-comparison" class="section level3">
+<h3>3.2 Accuracy Comparison</h3>
+<p>我们使用 APM 和 CPE 分别估计全局因子。为了衡量估计的因子空间 <span class="math inline">\(\hat{G}\)</span> 与真实因子空间 <span class="math inline">\(G_{true}\)</span>
+的一致性，我们采用<strong>典型相关分析 (Canonical Correlation Analysis,
+CCA)</strong>。具体指标为典型相关系数平方的均值（即 Trace
+Ratio），该值越接近 1 表示估计越准确。</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># 1. 运行 APM</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co"># APM 自动确定 r0 (默认使用 Eigenvalue Gap 方法)</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>res_apm <span class="ot">&lt;-</span> <span class="fu">apm</span>(Y_list, <span class="at">r_max =</span> <span class="dv">6</span>, <span class="at">method =</span> <span class="st">&quot;Gap&quot;</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>G_apm <span class="ot">&lt;-</span> res_apm<span class="sc">$</span>G_hat</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co"># 2. 运行 CPE</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co"># CPE 需要指定 r0</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>res_cpe <span class="ot">&lt;-</span> <span class="fu">cpe</span>(Y_list, <span class="at">r0 =</span> r0_true, <span class="at">r_max =</span> <span class="dv">6</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>G_cpe <span class="ot">&lt;-</span> res_cpe<span class="sc">$</span>G_hat</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co"># 定义计算精度的辅助函数 (使用典型相关系数)</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>calc_accuracy <span class="ot">&lt;-</span> <span class="cf">function</span>(G_est, G_true) {</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">ncol</span>(G_est) <span class="sc">==</span> <span class="dv">0</span>) <span class="fu">return</span>(<span class="dv">0</span>)</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>  </span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>  <span class="co"># 确保行数匹配</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>  T_common <span class="ot">&lt;-</span> <span class="fu">min</span>(<span class="fu">nrow</span>(G_est), <span class="fu">nrow</span>(G_true))</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>  G_est <span class="ot">&lt;-</span> G_est[<span class="dv">1</span><span class="sc">:</span>T_common, , drop<span class="ot">=</span><span class="cn">FALSE</span>]</span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>  G_true <span class="ot">&lt;-</span> G_true[<span class="dv">1</span><span class="sc">:</span>T_common, , drop<span class="ot">=</span><span class="cn">FALSE</span>]</span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>  </span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>  <span class="co"># 计算典型相关系数</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a>  cc <span class="ot">&lt;-</span> <span class="fu">cancor</span>(G_est, G_true)</span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>  </span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a>  <span class="co"># 返回平方相关系数的均值 (范围 0~1)</span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">mean</span>(cc<span class="sc">$</span>cor<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a>}</span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a></span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="co"># 计算精度</span></span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a>acc_apm <span class="ot">&lt;-</span> <span class="fu">calc_accuracy</span>(G_apm, G_true)</span>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a>acc_cpe <span class="ot">&lt;-</span> <span class="fu">calc_accuracy</span>(G_cpe, G_true)</span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a></span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a><span class="co"># 展示结果</span></span>
+<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a>result_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a>  <span class="at">Method =</span> <span class="fu">c</span>(<span class="st">&quot;APM&quot;</span>, <span class="st">&quot;CPE&quot;</span>),</span>
+<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a>  <span class="at">Accuracy =</span> <span class="fu">c</span>(acc_apm, acc_cpe)</span>
+<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a>)</span>
+<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(result_df, <span class="at">caption =</span> <span class="st">&quot;Accuracy Comparison (Trace Ratio of Canonical Correlations)&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Accuracy Comparison (Trace Ratio of Canonical
+Correlations)</caption>
+<thead>
+<tr class="header">
+<th align="left">Method</th>
+<th align="right">Accuracy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">APM</td>
+<td align="right">0.9945664</td>
+</tr>
+<tr class="even">
+<td align="left">CPE</td>
+<td align="right">0.9800655</td>
+</tr>
+</tbody>
+</table>
+<p>结果表明，APM 和 CPE 在此设定下都能准确地恢复出全局因子空间（Accuracy
+接近 1）。</p>
+</div>
+<div id="computational-efficiency" class="section level3">
+<h3>3.3 Computational Efficiency</h3>
+<p>APM 是一次性计算（One-step），而 CPE 需要迭代收敛。理论上 APM
+具有更高的计算效率。我们使用 <code>microbenchmark</code> 包进行 50
+次重复实验来对比运行时间。</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># 比较运行速度</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="fu">library</span>(microbenchmark)</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>mb <span class="ot">&lt;-</span> <span class="fu">microbenchmark</span>(</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">APM =</span> <span class="fu">apm</span>(Y_list, <span class="at">r_max =</span> <span class="dv">6</span>),</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="at">CPE =</span> <span class="fu">cpe</span>(Y_list, <span class="at">r0 =</span> r0_true, <span class="at">r_max =</span> <span class="dv">6</span>),</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="at">times =</span> <span class="dv">50</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>)</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="fu">print</span>(mb)</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt; Unit: milliseconds</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt;  expr    min     lq     mean  median     uq     max neval</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt;   APM 8.6420 9.3395 9.907792 9.49830 9.7742 19.1777    50</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt;   CPE 5.7552 6.1112 6.426170 6.21775 6.3264 16.9339    50</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="co"># 可视化速度差异 (使用 print 显式输出图形，并设置了 chunk 的 fig 大小)</span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">autoplot</span>(mb) <span class="sc">+</span> </span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">&quot;Runtime Comparison: APM vs CPE&quot;</span>) <span class="sc">+</span></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="fu">print</span>(p)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>从结果可以看出，<strong>APM 的计算速度显著快于 CPE</strong>。这是因为
+APM
+避免了耗时的迭代过程，仅需计算一次聚合矩阵的特征分解，这在大规模数据集（Large
+<span class="math inline">\(N\)</span>, Large <span class="math inline">\(T\)</span>）上具有显著优势。</p>
+</div>
+</div>
+<div id="conclusion" class="section level2">
+<h2>4. Conclusion</h2>
+<p>本 R 包实现了 Li et al. (2024) 提出的 APM 算法。 1.
+<strong>理论上</strong>：APM
+通过聚合投影矩阵，提供了一种直观且数学上严谨的全局因子提取方法。 2.
+<strong>实证上</strong>：模拟结果显示，APM
+在保持与迭代方法（CPE）相当的高精度的同时，在计算效率上实现了数量级的提升。</p>
+<p>这些特性使得 APM
+非常适合处理高维、多群组的宏观经济或金融面板数据。</p>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ol style="list-style-type: decimal">
+<li>Li, T., Hu, J., &amp; Wang, X. (2024). Aggregated projection method:
+a new approach for group factor model. <em>Presentation
+Slides</em>.</li>
+<li>Chen, M. (2022). Circularly projected common factors for grouped
+data. <em>Journal of Business &amp; Economic Statistics</em>, 41(2),
+636-649.</li>
+</ol>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
